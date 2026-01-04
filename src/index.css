@@ -10,8 +10,8 @@
 	--color-border-alt: #CED1CD;
 	--shadow-soft: rgba(0, 0, 0, 0.06);
 
-	/* Surface for image wrappers */
-	--surface-image: #EEF2EA;
+	/* Surface for image wrappers (match card background) */
+	--surface-image: #fff;
 
 	--radius-card: 20px;
 	--spacing: 16px;
@@ -206,6 +206,7 @@ button { font-family: inherit; }
 .gift-image {
 	background: var(--surface-image);
 	border-radius: 14px;
+	border: 1px solid var(--color-border);
 	padding: 10px;
 	display: flex;
 	align-items: center;
