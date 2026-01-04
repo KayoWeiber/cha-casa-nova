@@ -4,14 +4,12 @@ import Layout from '../components/Layout'
 import SectionTitle from '../components/SectionTitle'
 import Divider from '../components/Divider'
 import Button from '../components/Button'
-import { TextInput, TextArea, Select } from '../components/Input'
+import { TextInput } from '../components/Input'
 
 type RSVP = {
   name: string
   phone?: string
   attending: boolean
-  companions?: number
-  note?: string
   date: string
 }
 
@@ -20,8 +18,6 @@ export default function ConfirmePresenca() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [attending, setAttending] = useState(true)
-  const [companions, setCompanions] = useState(0)
-  const [note, setNote] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
@@ -42,8 +38,6 @@ export default function ConfirmePresenca() {
       name: name.trim(),
       phone: phone.trim() || undefined,
       attending,
-      companions: attending ? companions : 0,
-      note: note.trim() || undefined,
       date: new Date().toISOString(),
     }
     saveToLocalStorage(data)
@@ -78,13 +72,7 @@ export default function ConfirmePresenca() {
             <div className="hint">Selecione sua disponibilidade</div>
           </div>
 
-          {attending && (
-            <Select label="Nº de acompanhantes" value={companions} onChange={(e) => setCompanions(Number(e.target.value))}>
-              {[0,1,2,3,4,5].map(n => <option key={n} value={n}>{n}</option>)}
-            </Select>
-          )}
-
-          <TextArea label="Observação (opcional)" value={note} onChange={(e) => setNote(e.target.value)} rows={3} />
+          {/* Campos removidos: Nº de acompanhantes e Observação */}
         </div>
 
         <Divider />
