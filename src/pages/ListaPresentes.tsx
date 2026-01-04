@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SectionTitle from '../components/SectionTitle'
@@ -7,6 +7,7 @@ import Button from '../components/Button'
 import { presentes, ROOM_OPTIONS } from '../data/presentes'
 import type { Presente } from '../data/presentes'
 import Modal from '../components/Modal'
+import { processImageToPng } from '../utils/processImageToPng'
 
 function getPurchasedIds(): number[] {
   try {
@@ -68,6 +69,29 @@ export default function ListaPresentes() {
     setSelectedRoomState(room)
     setSelectedRoom(room)
   }
+
+  // track image load/error state
+  const [loadedIds, setLoadedIds] = useState<Set<number>>(new Set())
+  const [errorIds, setErrorIds] = useState<Set<number>>(new Set())
+  const [processedMap, setProcessedMap] = useState<Record<number, string | undefined>>({})
+
+  useEffect(() => {
+    // process images for visible items with caching
+    visibleItems.forEach(async (p) => {
+      if (processedMap[p.id]) return
+      try {
+        const src = await processImageToPng(p.imageUrl, {
+          removeBg: p.removeBg ?? true,
+          bgTolerance: p.bgTolerance ?? 35,
+          bgSample: p.bgSample ?? 'corners',
+        })
+        setProcessedMap(prev => ({ ...prev, [p.id]: src }))
+      } catch {
+        setProcessedMap(prev => ({ ...prev, [p.id]: p.imageUrl }))
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRoom, visibleItems.length])
 
   return (
     <Layout>
@@ -138,17 +162,30 @@ export default function ListaPresentes() {
             const isPurchased = purchased.includes(p.id)
             return (
               <div key={p.id} className="card" style={{ padding: 16 }}>
-                {/* Image placeholder */}
-                <div style={{ border: `1px solid var(--color-border)`, borderRadius: 12, overflow: 'hidden', background: '#fff', aspectRatio: '4 / 3' }}>
-                  {p.imagemUrl ? (
-                    <img src={p.imagemUrl} alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}>
-                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                {/* Image area */}
+                <div className="gift-image">
+                  {(!p.imageUrl || errorIds.has(p.id)) && (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', gap: 8 }}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                         <rect x="3" y="5" width="18" height="14" rx="2" stroke="#CED1CD" strokeWidth="1.5" />
-                        <circle cx="12" cy="12" r="3" stroke="#829A5D" strokeWidth="1.5" />
+                        <line x1="6" y1="8" x2="18" y2="16" stroke="#CED1CD" strokeWidth="1.5" />
                       </svg>
+                      <span className="muted">Imagem indisponível</span>
                     </div>
+                  )}
+                  {p.imageUrl && !errorIds.has(p.id) && (
+                    <>
+                      {!loadedIds.has(p.id) && (
+                        <div style={{ width: '100%', height: '100%', background: 'transparent' }} />
+                      )}
+                      <img
+                        src={processedMap[p.id] || p.imageUrl}
+                        alt={p.nome}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', display: loadedIds.has(p.id) ? 'block' : 'none' }}
+                        onLoad={() => setLoadedIds(prev => new Set(prev).add(p.id))}
+                        onError={() => setErrorIds(prev => new Set(prev).add(p.id))}
+                      />
+                    </>
                   )}
                 </div>
 
