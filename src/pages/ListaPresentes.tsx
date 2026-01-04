@@ -4,7 +4,7 @@ import Layout from '../components/Layout'
 import SectionTitle from '../components/SectionTitle'
 import Divider from '../components/Divider'
 import Button from '../components/Button'
-import { presentes } from '../data/presentes'
+import { presentes, ROOM_OPTIONS } from '../data/presentes'
 import type { Presente } from '../data/presentes'
 import Modal from '../components/Modal'
 
@@ -22,10 +22,25 @@ function setPurchasedIds(ids: number[]) {
   } catch { /* ignore persistence errors */ }
 }
 
+function getSelectedRoom(): string {
+  try {
+    const raw = localStorage.getItem('selectedRoom')
+    return raw ? JSON.parse(raw) : 'Todos'
+  } catch {
+    return 'Todos'
+  }
+}
+function setSelectedRoom(room: string) {
+  try {
+    localStorage.setItem('selectedRoom', JSON.stringify(room))
+  } catch { /* ignore persistence errors */ }
+}
+
 export default function ListaPresentes() {
   const navigate = useNavigate()
   const [purchased, setPurchased] = useState<number[]>(() => getPurchasedIds())
   const [modalItem, setModalItem] = useState<Presente | null>(null)
+  const [selectedRoom, setSelectedRoomState] = useState<string>(() => getSelectedRoom())
 
   // no direct toggle; confirmation happens via modal after opening link
 
@@ -44,6 +59,16 @@ export default function ListaPresentes() {
     setModalItem(null)
   }
 
+  const filterOptions = ['Todos', ...ROOM_OPTIONS]
+  const visibleItems = selectedRoom === 'Todos'
+    ? presentes
+    : presentes.filter(p => p.comodo === selectedRoom)
+
+  function handleSelectRoom(room: string) {
+    setSelectedRoomState(room)
+    setSelectedRoom(room)
+  }
+
   return (
     <Layout>
       <div className="card">
@@ -59,8 +84,57 @@ export default function ListaPresentes() {
         <div className="hint">Ao marcar como comprado, o item aparece como reservado.</div>
         <Divider />
 
+        {/* Room filter chips */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            paddingBottom: 6,
+            marginBottom: 12,
+          }}
+          aria-label="Filtrar por cômodo"
+        >
+          {filterOptions.map((room) => {
+            const active = selectedRoom === room
+            return (
+              <button
+                key={room}
+                type="button"
+                onClick={() => handleSelectRoom(room)}
+                className="chip"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  whiteSpace: 'nowrap',
+                  padding: '8px 14px',
+                  borderRadius: 999,
+                  border: '1px solid',
+                  borderColor: active ? 'var(--color-primary)' : 'var(--color-border)',
+                  background: active ? '#e8f1e3' : '#fff',
+                  color: 'var(--color-text)',
+                  fontWeight: 500,
+                  boxShadow: active ? '0 4px 12px var(--shadow-soft)' : 'none',
+                  cursor: 'pointer',
+                }}
+                aria-pressed={active}
+              >
+                {room}
+              </button>
+            )
+          })}
+        </div>
+
+        {visibleItems.length === 0 && (
+          <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+            <span className="muted">Nenhum item neste cômodo ainda.</span>
+          </div>
+        )}
+
         <div className="grid">
-          {presentes.map((p: Presente) => {
+          {visibleItems.map((p: Presente) => {
             const isPurchased = purchased.includes(p.id)
             return (
               <div key={p.id} className="card" style={{ padding: 16 }}>
