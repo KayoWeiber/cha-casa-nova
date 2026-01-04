@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route,} from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import ListaPresentes from './pages/ListaPresentes';
@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/lista-presentes" element={<ListaPresentes />} />
-        <Route path="/confirme-presenca" element={<ConfirmePresenca />} />
+        <Route path="/confirmar-presenca" element={<ConfirmePresenca />} />
         <Route path="*" element={<NotFound />} /> 
       </Routes>
     </BrowserRouter>
