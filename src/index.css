@@ -51,7 +51,8 @@ button { font-family: inherit; }
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius-card);
 	box-shadow: 0 8px 24px var(--shadow-soft);
-	padding: 20px;
+	/* AJUSTE AQUI: padding do card */
+	padding: 10px;
 }
 
 .muted { color: var(--color-muted); }
@@ -59,7 +60,8 @@ button { font-family: inherit; }
 .divider {
 	height: 1px;
 	background: var(--color-border);
-	margin: 24px 0;
+	/* AJUSTE AQUI: espaçamento do divisor */
+	margin: 8px 0;
 }
 
 .section-title {
