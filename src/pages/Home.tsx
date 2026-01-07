@@ -2,15 +2,31 @@ import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
 import Button from '../components/Button'
 import Divider from '../components/Divider'
+import BrideWiggle from '../components/BrideWiggle'
+import { DEFAULT_BRIDE_WIGGLE_CONFIG } from '../components/BrideWiggle.config'
+import rostoNoiva from '../assets/Rosto-noiva.png'
+import veuNoiva from '../assets/veu-noiva.png'
 
 export default function Home() {
+  // AJUSTE AQUI: sobe/desce a noiva no card
+  const BRIDE_TOP_PX = 2
   return (
     <Layout>
-      <div className="card" aria-label="Convite do chá de casa nova">
+      <div className="card relative" aria-label="Convite do chá de casa nova">
         <div className="eyebrow">chá de casa nova</div>
+        <div className="relative  left-1/2 -translate-x-1/2 "  style={{ top: BRIDE_TOP_PX }}>
+          <BrideWiggle
+            className=""
+            size={110}
+            face={{ ...DEFAULT_BRIDE_WIGGLE_CONFIG.face, src: rostoNoiva }}
+            veil={{ ...DEFAULT_BRIDE_WIGGLE_CONFIG.veil, src: veuNoiva }}
+            motion={DEFAULT_BRIDE_WIGGLE_CONFIG.motion}
+            debug={false}
+          />
+        </div>
         <h1 className="display-title">Áthina e Kayo</h1>
 
-        <div className="subinfo" style={{ marginBottom: 8 }}>SÁBADO, ÀS 15 HRS</div>
+        <div className="subinfo" style={{ marginBottom: 4 }}>SÁBADO, ÀS 15 HRS</div>
         <div className="date-block" aria-label="Data do evento">
           <span className="date-part">09</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -23,11 +39,12 @@ export default function Home() {
           <span className="date-part">2026</span>
         </div>
 
-        <div className="muted" style={{ marginTop: 12 }}>ENDEREÇO COMPLETO</div>
+        <div className="muted" style={{ marginTop: 6 }}>ENDEREÇO COMPLETO</div>
 
         <Divider />
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <Link to="/confirmar-presenca"><Button>Confirmar presença</Button></Link>
           <Link to="/lista-presentes"><Button variant="outline">Ver lista de presentes</Button></Link>
           <a href="#como-chegar" className="muted" style={{ alignSelf: 'center' }}>Como chegar</a>
