@@ -5,6 +5,7 @@ import SectionTitle from '../components/SectionTitle'
 import Divider from '../components/Divider'
 import Button from '../components/Button'
 import { TextInput } from '../components/Input'
+import { createRSVP } from '../repositories/rsvpRepository'
 
 type RSVP = {
   name: string
@@ -21,12 +22,6 @@ export default function ConfirmePresenca() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  function saveToLocalStorage(data: RSVP) {
-    try {
-      localStorage.setItem('rsvp', JSON.stringify(data))
-    } catch {}
-  }
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -40,8 +35,9 @@ export default function ConfirmePresenca() {
       attending,
       date: new Date().toISOString(),
     }
-    saveToLocalStorage(data)
-    setSuccess(true)
+    createRSVP(data)
+      .then(() => setSuccess(true))
+      .catch(() => setError('Erro ao enviar confirmação. Tente novamente.'))
   }
 
   return (
