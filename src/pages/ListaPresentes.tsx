@@ -1,29 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import SectionTitle from '../components/SectionTitle'
 import Divider from '../components/Divider'
 import Button from '../components/Button'
-import { presentes, ROOM_OPTIONS } from '../data/presentes'
-import type { Presente } from '../data/presentes'
+import { ROOM_OPTIONS } from '../repositories/constants'
+import type { Gift } from '../repositories/giftsRepository'
+import { getAllGifts, getGiftsByRoom } from '../repositories/giftsRepository'
+import { getPurchasedGiftIds, markGiftPurchased } from '../repositories/purchasesRepository'
 import Modal from '../components/Modal'
 import { processImageToPng } from '../utils/processImageToPng'
 
-function getPurchasedIds(): number[] {
-  try {
-    const raw = localStorage.getItem('purchasedIds')
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-function setPurchasedIds(ids: number[]) {
-  try {
-    localStorage.setItem('purchasedIds', JSON.stringify(ids))
-  } catch { /* ignore persistence errors */ }
-}
-
-function getSelectedRoom(): string {
+function getPersistedRoom(): string {
   try {
     const raw = localStorage.getItem('selectedRoom')
     return raw ? JSON.parse(raw) : 'Todos'
@@ -31,80 +19,184 @@ function getSelectedRoom(): string {
     return 'Todos'
   }
 }
-function setSelectedRoom(room: string) {
+
+function persistRoom(room: string) {
   try {
     localStorage.setItem('selectedRoom', JSON.stringify(room))
-  } catch { /* ignore persistence errors */ }
+  } catch {
+    // ignore
+  }
+}
+
+function safeHttpUrl(url?: string | null) {
+  const u = url?.trim()
+  if (!u) return null
+  return /^https?:\/\//i.test(u) ? u : null
+}
+
+function safeImageSrc(src?: string | null) {
+  const s = src?.trim()
+  if (!s) return null
+  // permite http(s), data: (resultado do processImageToPng) e blob:
+  return /^(https?:\/\/|data:|blob:)/i.test(s) ? s : null
+}
+
+// pega campos vindo do banco mesmo se estiverem em snake_case
+function getGiftLink(p: Gift) {
+  const anyP = p as any
+  return (anyP.linkLoja ?? anyP.link_loja ?? anyP.link) as string | undefined
+}
+
+function getGiftImage(p: Gift) {
+  const anyP = p as any
+  return (anyP.imageUrl ?? anyP.image_url ?? anyP.imageurl ?? anyP.image) as string | undefined
 }
 
 export default function ListaPresentes() {
   const navigate = useNavigate()
-  const [purchased, setPurchased] = useState<number[]>(() => getPurchasedIds())
-  const [modalItem, setModalItem] = useState<Presente | null>(null)
-  const [selectedRoom, setSelectedRoomState] = useState<string>(() => getSelectedRoom())
 
-  // no direct toggle; confirmation happens via modal after opening link
+  const [purchased, setPurchased] = useState<number[]>([])
+  const [modalItem, setModalItem] = useState<Gift | null>(null)
 
-  function handleOpenLink(p: Presente) {
-    // open in a new tab then prompt
-    window.open(p.linkLoja, '_blank', 'noopener,noreferrer')
-    setModalItem(p)
-  }
-
-  function confirmPurchased() {
-    if (!modalItem) return
-    const id = modalItem.id
-    const next = purchased.includes(id) ? purchased : [...purchased, id]
-    setPurchased(next)
-    setPurchasedIds(next)
-    setModalItem(null)
-  }
-
-  const filterOptions = ['Todos', ...ROOM_OPTIONS]
-  const visibleItems = selectedRoom === 'Todos'
-    ? presentes
-    : presentes.filter(p => p.comodo === selectedRoom)
-
-  function handleSelectRoom(room: string) {
-    setSelectedRoomState(room)
-    setSelectedRoom(room)
-  }
+  const [selectedRoom, setSelectedRoomState] = useState<string>(() => getPersistedRoom())
+  const [items, setItems] = useState<Gift[]>([])
 
   // track image load/error state
   const [loadedIds, setLoadedIds] = useState<Set<number>>(new Set())
   const [errorIds, setErrorIds] = useState<Set<number>>(new Set())
   const [processedMap, setProcessedMap] = useState<Record<number, string | undefined>>({})
 
-  useEffect(() => {
-    // process images for visible items with caching
-    visibleItems.forEach(async (p) => {
-      if (processedMap[p.id]) return
+  // evita processar a mesma imagem em paralelo
+  const processingIdsRef = useRef<Set<number>>(new Set())
+
+  const filterOptions = useMemo(() => ['Todos', ...ROOM_OPTIONS], [])
+
+  const visibleItems = useMemo(() => {
+    if (selectedRoom === 'Todos') return items
+    return items.filter(p => p.comodo === selectedRoom)
+  }, [items, selectedRoom])
+
+  function handleSelectRoom(room: string) {
+    setSelectedRoomState(room)
+    persistRoom(room)
+  }
+
+  function handleOpenLink(p: Gift) {
+    const raw = getGiftLink(p)
+    const url = safeHttpUrl(raw)
+
+    if (!url) {
+      console.warn('Link inválido/ausente para este item:', { id: p.id, nome: p.nome, raw })
+      // você pode trocar por um toast, mas aqui vai o básico e funcional:
+      alert('Link indisponível para este item.')
+      return
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer')
+    setModalItem(p)
+  }
+
+  async function confirmPurchased() {
+    if (!modalItem) return
+
+    const id = modalItem.id
+    if (!purchased.includes(id)) {
       try {
-        const src = await processImageToPng(p.imageUrl, {
-          removeBg: p.removeBg ?? true,
-          bgTolerance: p.bgTolerance ?? 35,
-          bgSample: p.bgSample ?? 'corners',
-        })
-        setProcessedMap(prev => ({ ...prev, [p.id]: src }))
-      } catch {
-        setProcessedMap(prev => ({ ...prev, [p.id]: p.imageUrl }))
+        await markGiftPurchased(id)
+        const latest = await getPurchasedGiftIds()
+        setPurchased(latest)
+      } catch (e) {
+        console.error('Erro ao marcar como comprado', e)
       }
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRoom, visibleItems.length])
+    }
+
+    setModalItem(null)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadData() {
+      try {
+        const gifts = selectedRoom === 'Todos'
+          ? await getAllGifts()
+          : await getGiftsByRoom(selectedRoom as any)
+
+        if (cancelled) return
+
+        setItems(gifts)
+
+        const purchasedIds = await getPurchasedGiftIds()
+        if (cancelled) return
+        setPurchased(purchasedIds)
+
+        // opcional, mas útil pra ver se veio link_loja/image_url etc
+        // console.log('GIFT SAMPLE:', gifts?.[0])
+      } catch (e) {
+        console.error('Falha ao carregar dados do Supabase', e)
+      }
+    }
+
+    loadData()
+    return () => { cancelled = true }
+  }, [selectedRoom])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function run() {
+      for (const p of visibleItems) {
+        const rawImg = getGiftImage(p)
+        const imgUrl = safeImageSrc(rawImg)
+
+        if (!imgUrl) continue
+        if (processedMap[p.id]) continue
+        if (processingIdsRef.current.has(p.id)) continue
+
+        processingIdsRef.current.add(p.id)
+
+        try {
+          const src = await processImageToPng(imgUrl, {
+            removeBg: (p as any).removeBg ?? (p as any).remove_bg ?? true,
+            bgTolerance: (p as any).bgTolerance ?? (p as any).bg_tolerance ?? 35,
+            bgSample: (p as any).bgSample ?? (p as any).bg_sample ?? 'corners',
+          })
+
+          if (cancelled) return
+          setProcessedMap(prev => ({ ...prev, [p.id]: src }))
+        } catch {
+          // fallback: usa a url original
+          if (cancelled) return
+          setProcessedMap(prev => ({ ...prev, [p.id]: imgUrl }))
+        } finally {
+          processingIdsRef.current.delete(p.id)
+        }
+      }
+    }
+
+    run()
+    return () => { cancelled = true }
+  }, [visibleItems, processedMap])
 
   return (
     <Layout>
       <div className="card">
         <div className="card-header" style={{ marginBottom: 8 }}>
           <SectionTitle>Lista de presentes</SectionTitle>
-          <button type="button" className="btn btn-outline" onClick={() => navigate('/')} aria-label="Voltar para o início">
+
+          <button
+            type="button"
+            className="btn btn-outline cursor-pointer"
+            onClick={() => navigate('/')}
+            aria-label="Voltar para o início"
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
               <path d="M15 18l-6-6 6-6" stroke="#446323" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Voltar
           </button>
         </div>
+
         <div className="hint">Ao marcar como comprado, o item aparece como reservado.</div>
         <Divider />
 
@@ -158,13 +250,16 @@ export default function ListaPresentes() {
         )}
 
         <div className="grid">
-          {visibleItems.map((p: Presente) => {
+          {visibleItems.map((p: Gift) => {
             const isPurchased = purchased.includes(p.id)
+            const rawImg = getGiftImage(p)
+            const imgUrl = safeImageSrc(rawImg)
+
             return (
               <div key={p.id} className="card" style={{ padding: 16 }}>
                 {/* Image area */}
                 <div className="gift-image">
-                  {(!p.imageUrl || errorIds.has(p.id)) && (
+                  {(!imgUrl || errorIds.has(p.id)) && (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)', gap: 8 }}>
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                         <rect x="3" y="5" width="18" height="14" rx="2" stroke="#CED1CD" strokeWidth="1.5" />
@@ -173,15 +268,23 @@ export default function ListaPresentes() {
                       <span className="muted">Imagem indisponível</span>
                     </div>
                   )}
-                  {p.imageUrl && !errorIds.has(p.id) && (
+
+                  {imgUrl && !errorIds.has(p.id) && (
                     <>
                       {!loadedIds.has(p.id) && (
                         <div style={{ width: '100%', height: '100%', background: 'transparent' }} />
                       )}
+
                       <img
-                        src={processedMap[p.id] || p.imageUrl}
+                        src={processedMap[p.id] || imgUrl}
                         alt={p.nome}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center', display: loadedIds.has(p.id) ? 'block' : 'none' }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain',
+                          objectPosition: 'center',
+                          display: loadedIds.has(p.id) ? 'block' : 'none',
+                        }}
                         onLoad={() => setLoadedIds(prev => new Set(prev).add(p.id))}
                         onError={() => setErrorIds(prev => new Set(prev).add(p.id))}
                       />
@@ -195,7 +298,9 @@ export default function ListaPresentes() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, marginTop: 10, alignItems: 'center' }}>
-                  <Button onClick={() => handleOpenLink(p)}>{isPurchased ? 'Ver novamente' : 'Abrir link'}</Button>
+                  <Button onClick={() => handleOpenLink(p)}>
+                    {isPurchased ? 'Ver novamente' : 'Abrir link'}
+                  </Button>
                 </div>
               </div>
             )
