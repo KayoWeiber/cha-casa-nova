@@ -7,7 +7,6 @@ import Spinner from '../components/Spinner'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 
-// Ajuste a extensão se necessário: .png / .svg / .webp
 import logoUrl from '../assets/logo-120x120.png'
 
 type UnknownRecord = Record<string, unknown>
@@ -27,14 +26,11 @@ function getNumber(obj: UnknownRecord, key: string): number | null {
 }
 
 function friendlyAuthError(err: unknown): string {
-  // Extrai info de erro sem any e sem vazar mensagem crua pro usuário
   let message = ''
   let code = ''
   let status: number | null = null
 
-  if (err instanceof Error) {
-    message = err.message || ''
-  }
+  if (err instanceof Error) message = err.message || ''
 
   if (isRecord(err)) {
     message =
@@ -55,7 +51,6 @@ function friendlyAuthError(err: unknown): string {
 
   const normalized = `${code} ${message}`.trim().toLowerCase()
 
-  // Credenciais inválidas (Supabase pode variar texto/código)
   if (
     normalized.includes('invalid login credentials') ||
     normalized.includes('invalid_credentials') ||
@@ -65,22 +60,18 @@ function friendlyAuthError(err: unknown): string {
     return 'E-mail ou senha inválidos. Confira os dados e tente novamente.'
   }
 
-  // Email não confirmado
   if (normalized.includes('email not confirmed')) {
     return 'Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e confirme o cadastro.'
   }
 
-  // Rate limit
   if (normalized.includes('too many requests') || normalized.includes('rate limit')) {
     return 'Muitas tentativas em pouco tempo. Aguarde um momento e tente novamente.'
   }
 
-  // Rede
   if (normalized.includes('network') || normalized.includes('fetch failed')) {
     return 'Não foi possível conectar ao servidor agora. Verifique sua internet e tente novamente.'
   }
 
-  // Fallback elegante (NUNCA vaza inglês cru)
   return 'Não foi possível entrar no momento. Verifique suas credenciais e tente novamente.'
 }
 
@@ -119,7 +110,6 @@ export default function Login() {
         password
       })
 
-      // Não joga pra catch: trata aqui e não vaza texto cru
       if (error) {
         setError(friendlyAuthError(error))
         return
@@ -143,7 +133,7 @@ export default function Login() {
 
   return (
     <Layout>
-      <div className="px-4">
+      <div className="px-3 sm:px-4">
         <div className="mx-auto flex min-h-[70vh] w-full max-w-[520px] flex-col justify-center">
           <div className="relative">
             <div
@@ -155,7 +145,7 @@ export default function Login() {
               }}
             />
 
-            <div className="relative rounded-2xl border border-white/60 bg-white/70 p-5 shadow-lg backdrop-blur">
+            <div className="relative rounded-2xl border border-white/60 bg-white/70 p-4 shadow-lg backdrop-blur sm:p-5">
               <div className="flex flex-col items-center text-center">
                 <img
                   src={logoUrl}
@@ -182,7 +172,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="input"
+                    className="input w-full"
                     placeholder="admin@exemplo.com"
                     autoComplete="email"
                     inputMode="email"
@@ -192,14 +182,14 @@ export default function Login() {
                 <label className="flex flex-col gap-1.5">
                   <span className="text-sm text-black/60">Senha</span>
 
-                  <div className="relative">
+                  <div className="relative w-full">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyUp={(e) => setCapsLockOn(e.getModifierState('CapsLock'))}
                       required
-                      className="input pr-12"
+                      className="input w-full !pr-14"
                       placeholder="••••••••"
                       autoComplete="current-password"
                       aria-describedby={capsLockOn ? 'capslock-hint' : undefined}
@@ -208,12 +198,11 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-1 top-1/2 -translate-y-1/2 cursor-pointer rounded-lg p-2 text-black/60 transition  focus:outline-none "
+                      className="absolute right-1 inset-y-0 my-auto flex h-9 w-9 items-center justify-center rounded-lg text-black/60 transition cursor-pointer"
                       aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                       title={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                     >
                       {showPassword ? (
-                        // eye-off
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path d="M3 3l18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                           <path
@@ -236,7 +225,6 @@ export default function Login() {
                           />
                         </svg>
                       ) : (
-                        // eye
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path
                             d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8z"
