@@ -14,3 +14,11 @@ export async function markGiftPurchased(giftId: number): Promise<void> {
     .upsert({ gift_id: giftId }, { onConflict: 'gift_id' })
   if (error) throw error
 }
+
+export async function unmarkGiftPurchased(giftId: number): Promise<void> {
+  const { error } = await supabase
+    .from('purchases')
+    .delete()
+    .eq('gift_id', giftId)
+  if (error) throw error
+}
