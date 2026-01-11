@@ -11,6 +11,7 @@ import { getPurchasedGiftIds, markGiftPurchased, unmarkGiftPurchased } from '../
 import Modal from '../components/Modal'
 import { processImageToPng } from '../utils/processImageToPng'
 import Spinner from '../components/Spinner'
+import ScrollTopButton from '../components/ScrollTopButton'
 
 const ALL_ROOMS = 'Todos' as const
 type Room = (typeof ROOM_OPTIONS)[number]
@@ -445,6 +446,10 @@ export default function ListaPresentes() {
         onConfirm={confirmPurchased}
         onCancel={() => setModalItem(null)}
       />
+
+      {/* Floating scroll-to-top button, outside the card */}
+      <ScrollTopButton threshold={300} />
     </Layout>
   )
 }
+
