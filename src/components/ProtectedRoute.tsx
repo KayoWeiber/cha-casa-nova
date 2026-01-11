@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import Spinner from './Spinner'
 import { useAuth } from '../context/AuthContext'
 
 type ProtectedRouteProps = {
-  children: JSX.Element
+  children: ReactNode
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
@@ -17,5 +18,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />
   }
 
-  return children
+  return <>{children}</>
 }
