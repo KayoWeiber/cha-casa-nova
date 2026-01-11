@@ -10,6 +10,7 @@ import { getAllGifts, getGiftsByRoom } from '../repositories/giftsRepository'
 import { getPurchasedGiftIds, markGiftPurchased, unmarkGiftPurchased } from '../repositories/purchasesRepository'
 import Modal from '../components/Modal'
 import { processImageToPng } from '../utils/processImageToPng'
+import Spinner from '../components/Spinner'
 
 const ALL_ROOMS = 'Todos' as const
 type Room = (typeof ROOM_OPTIONS)[number]
@@ -119,6 +120,7 @@ export default function ListaPresentes() {
 
   const [selectedRoom, setSelectedRoomState] = useState<RoomFilter>(() => getPersistedRoom())
   const [items, setItems] = useState<Gift[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
 
   // track image load/error state
   const [loadedIds, setLoadedIds] = useState<Set<number>>(new Set())
@@ -128,7 +130,7 @@ export default function ListaPresentes() {
   // evita processar a mesma imagem em paralelo
   const processingIdsRef = useRef<Set<number>>(new Set())
 
-  const filterOptions = useMemo<RoomFilter[]>(() => [ALL_ROOMS, ...(ROOM_OPTIONS as Room[])], [])
+  const filterOptions = useMemo<RoomFilter[]>(() => [ALL_ROOMS, ...ROOM_OPTIONS], [])
 
   const visibleItems = useMemo(() => {
     if (selectedRoom === ALL_ROOMS) return items
@@ -191,6 +193,7 @@ export default function ListaPresentes() {
     let cancelled = false
 
     async function loadData() {
+      setLoading(true)
       try {
         const gifts =
           selectedRoom === ALL_ROOMS
@@ -206,6 +209,8 @@ export default function ListaPresentes() {
         setPurchased(purchasedIds)
       } catch (e: unknown) {
         console.error('Falha ao carregar dados do Supabase', e)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
 
@@ -232,7 +237,7 @@ export default function ListaPresentes() {
         try {
           const removeBg = pickBoolean(p, ['removeBg', 'remove_bg'], true)
           const bgTolerance = pickNumber(p, ['bgTolerance', 'bg_tolerance'], 35)
-          const bgSample = pickString(p, ['bgSample', 'bg_sample']) ?? 'corners'
+          const bgSample = (pickString(p, ['bgSample', 'bg_sample']) as 'corners' | 'border' | undefined) ?? 'corners'
 
           const src = await processImageToPng(imgUrl, { removeBg, bgTolerance, bgSample })
 
@@ -319,12 +324,17 @@ export default function ListaPresentes() {
           })}
         </div>
 
-        {visibleItems.length === 0 && (
+        {loading && (
+          <Spinner message="Carregando itens da lista de presente" />
+        )}
+
+        {!loading && visibleItems.length === 0 && (
           <div className="card" style={{ padding: 16, textAlign: 'center' }}>
             <span className="muted">Nenhum item neste cômodo ainda.</span>
           </div>
         )}
 
+        {!loading && (
         <div className="grid">
           {visibleItems.map((p: Gift) => {
             const isPurchased = purchased.includes(p.id)
@@ -423,6 +433,7 @@ export default function ListaPresentes() {
             )
           })}
         </div>
+        )}
       </div>
 
       <Modal
