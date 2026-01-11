@@ -14,3 +14,12 @@ export async function createRSVP(entry: RSVP): Promise<void> {
     .insert(payload)
   if (error) throw error
 }
+
+export async function getAllRsvps(): Promise<Array<RSVP & { id?: string }>> {
+  const { data, error } = await supabase
+    .from('rsvps')
+    .select('*')
+    .order('date', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Array<RSVP & { id?: string }>
+}

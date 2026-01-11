@@ -22,3 +22,18 @@ export async function unmarkGiftPurchased(giftId: number): Promise<void> {
     .eq('gift_id', giftId)
   if (error) throw error
 }
+
+export type Purchase = {
+  id: string
+  gift_id: number
+  purchased_at: string
+}
+
+export async function getPurchasesDetailed(): Promise<Array<Purchase & { gift?: any }>> {
+  const { data, error } = await supabase
+    .from('purchases')
+    .select('*, gifts(*)')
+    .order('purchased_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Array<Purchase & { gift?: any }>
+}

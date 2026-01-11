@@ -12,6 +12,7 @@
     "supabase:push": "npx supabase db push"
     ,
     "db:migrate": "npm run supabase:push",
+    "db:new": "tsx scripts/new-migration.ts",
     "migrate:local": "tsx scripts/migrate-local-to-supabase.ts"
   },
   "dependencies": {
