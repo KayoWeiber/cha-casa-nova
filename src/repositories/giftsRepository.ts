@@ -30,3 +30,24 @@ export async function getGiftsByRoom(room: Room): Promise<Gift[]> {
   if (error) throw error
   return data as Gift[]
 }
+
+export async function getGiftsPaginated(options: {
+  room?: Room
+  afterId?: number
+  limit?: number
+}): Promise<Gift[]> {
+  const { room, afterId, limit = 20 } = options
+
+  let query = supabase
+    .from('gifts')
+    .select('*')
+    .order('id', { ascending: true })
+    .limit(limit)
+
+  if (room) query = query.eq('comodo', room)
+  if (typeof afterId === 'number') query = query.gt('id', afterId)
+
+  const { data, error } = await query
+  if (error) throw error
+  return (data ?? []) as Gift[]
+}

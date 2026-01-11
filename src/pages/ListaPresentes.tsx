@@ -6,7 +6,7 @@ import Divider from '../components/Divider'
 import Button from '../components/Button'
 import { ROOM_OPTIONS } from '../repositories/constants'
 import type { Gift } from '../repositories/giftsRepository'
-import { getAllGifts, getGiftsByRoom } from '../repositories/giftsRepository'
+import { getAllGifts, getGiftsByRoom, getGiftsPaginated } from '../repositories/giftsRepository'
 import { getPurchasedGiftIds, markGiftPurchased, unmarkGiftPurchased } from '../repositories/purchasesRepository'
 import Modal from '../components/Modal'
 import { processImageToPng } from '../utils/processImageToPng'
@@ -122,6 +122,10 @@ export default function ListaPresentes() {
   const [selectedRoom, setSelectedRoomState] = useState<RoomFilter>(() => getPersistedRoom())
   const [items, setItems] = useState<Gift[]>([])
   const [loading, setLoading] = useState<boolean>(false)
+  const [loadingMore, setLoadingMore] = useState<boolean>(false)
+  const [hasMore, setHasMore] = useState<boolean>(true)
+  const [cursorId, setCursorId] = useState<number | null>(null)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   // track image load/error state
   const [loadedIds, setLoadedIds] = useState<Set<number>>(new Set())
@@ -193,17 +197,18 @@ export default function ListaPresentes() {
   useEffect(() => {
     let cancelled = false
 
-    async function loadData() {
+    async function initialLoad() {
       setLoading(true)
       try {
-        const gifts =
-          selectedRoom === ALL_ROOMS
-            ? await getAllGifts()
-            : await getGiftsByRoom(selectedRoom) // agora tipado, sem "as any"
+        const first = await getGiftsPaginated({
+          room: selectedRoom === ALL_ROOMS ? undefined : selectedRoom,
+          limit: 20,
+        })
 
         if (cancelled) return
-
-        setItems(gifts)
+        setItems(first)
+        setCursorId(first.length ? first[first.length - 1].id : null)
+        setHasMore(first.length === 20)
 
         const purchasedIds = await getPurchasedGiftIds()
         if (cancelled) return
@@ -215,11 +220,55 @@ export default function ListaPresentes() {
       }
     }
 
-    loadData()
+    initialLoad()
     return () => {
       cancelled = true
     }
   }, [selectedRoom])
+
+  async function loadMore() {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    try {
+      const next = await getGiftsPaginated({
+        room: selectedRoom === ALL_ROOMS ? undefined : selectedRoom,
+        afterId: cursorId ?? undefined,
+        limit: 20,
+      })
+      setItems(prev => [...prev, ...next])
+      const newCursor = next.length ? next[next.length - 1].id : cursorId
+      setCursorId(newCursor ?? cursorId)
+      if (next.length < 20) setHasMore(false)
+    } catch (e) {
+      console.error('Falha ao carregar mais itens', e)
+      setHasMore(false)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  useEffect(() => {
+    // Reset pagination when room changes
+    setItems([])
+    setCursorId(null)
+    setHasMore(true)
+    setProcessedMap({})
+    setLoadedIds(new Set())
+    setErrorIds(new Set())
+  }, [selectedRoom])
+
+  useEffect(() => {
+    if (!loadMoreRef.current) return
+    const el = loadMoreRef.current
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0]
+      if (entry.isIntersecting) {
+        loadMore()
+      }
+    }, { root: null, rootMargin: '200px', threshold: 0 })
+    observer.observe(el)
+    return () => observer.unobserve(el)
+  }, [loadMoreRef.current, hasMore, loadingMore, selectedRoom, cursorId])
 
   useEffect(() => {
     let cancelled = false
@@ -434,6 +483,13 @@ export default function ListaPresentes() {
             )
           })}
         </div>
+        )}
+
+        {/* Bottom sentinel and loader for infinite scroll */}
+        {!loading && hasMore && (
+          <div ref={loadMoreRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            {loadingMore ? <Spinner message="Carregando mais itens..." ariaLabel="Carregando mais itens" /> : <span className="muted">Role para carregar mais</span>}
+          </div>
         )}
       </div>
 
