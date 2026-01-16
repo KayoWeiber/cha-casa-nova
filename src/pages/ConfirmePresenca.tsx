@@ -81,9 +81,9 @@ export default function ConfirmePresenca() {
       <form
         onSubmit={handleSubmit}
         aria-label="Formulário de confirmação de presença"
-        className="card w-full max-w-xl mx-auto"
+        className="bg-white rounded-3xl p-4 shadow-[0_4px_30px_var(--shadow-soft)] border border-[var(--color-border)] w-full max-w-xl mx-auto"
       >
-        <div className="card-header flex items-start justify-between gap-3">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <SectionTitle>Confirmar presença</SectionTitle>
             <p className="text-sm opacity-70 mt-1">
@@ -91,9 +91,8 @@ export default function ConfirmePresenca() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-outline shrink-0 cursor-pointer"
+          <Button
+            variant="outline"
             onClick={() => navigate('/')}
             aria-label="Voltar para o início"
           >
@@ -115,7 +114,7 @@ export default function ConfirmePresenca() {
               />
             </svg>
             Voltar
-          </button>
+          </Button>
         </div>
 
         <Divider />
@@ -144,11 +143,11 @@ export default function ConfirmePresenca() {
 
           <div className="w-full">
             <fieldset
-              className="field w-full"
+              className="grid gap-1.5 w-full"
               aria-label="Vai comparecer?"
               disabled={isSubmitting || success}
             >
-              <legend className="label">Vai comparecer?</legend>
+              <legend className="text-sm text-[var(--color-text)]">Vai comparecer?</legend>
 
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -172,7 +171,7 @@ export default function ConfirmePresenca() {
                 </Button>
               </div>
 
-              <div className="hint">Selecione sua disponibilidade</div>
+              <div className="text-xs text-[var(--color-muted)]">Selecione sua disponibilidade</div>
             </fieldset>
           </div>
 

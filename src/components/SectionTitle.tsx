@@ -5,5 +5,5 @@ type SectionTitleProps = {
 }
 
 export default function SectionTitle({ children }: SectionTitleProps) {
-  return <h2 className="section-title">{children}</h2>
+  return <h2 className="font-sans font-semibold text-lg mb-3">{children}</h2>
 }

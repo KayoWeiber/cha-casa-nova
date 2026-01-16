@@ -172,7 +172,7 @@ export default function Login() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="input w-full"
+                    className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl bg-white text-[var(--color-text)] focus:outline-2 focus:outline-[var(--color-secondary)] focus:outline-offset-2"
                     placeholder="admin@exemplo.com"
                     autoComplete="email"
                     inputMode="email"
@@ -189,7 +189,7 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       onKeyUp={(e) => setCapsLockOn(e.getModifierState('CapsLock'))}
                       required
-                      className="input w-full !pr-14"
+                      className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl bg-white text-[var(--color-text)] focus:outline-2 focus:outline-[var(--color-secondary)] focus:outline-offset-2 pr-14"
                       placeholder="••••••••"
                       autoComplete="current-password"
                       aria-describedby={capsLockOn ? 'capslock-hint' : undefined}
@@ -251,7 +251,7 @@ export default function Login() {
                 </label>
 
                 {error && (
-                  <div className="error" role="alert" aria-live="polite">
+                  <div className="text-xs text-red-700" role="alert" aria-live="polite">
                     {error}
                   </div>
                 )}

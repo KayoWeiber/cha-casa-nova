@@ -51,7 +51,7 @@ export default function Home() {
     <Layout>
       <div
         className="
-          card relative mx-auto w-full
+          bg-white rounded-3xl p-4 shadow-[0_4px_30px_var(--shadow-soft)] border border-[var(--color-border)] relative mx-auto w-full
           min-h-[100svh]
           flex flex-col
           overflow-hidden
@@ -65,7 +65,7 @@ export default function Home() {
         </div>
 
         <div className="relative flex flex-1 flex-col px-4 pt-4 sm:px-6 sm:pt-6">
-          <div className="eyebrow text-center">chá de casa nova</div>
+          <div className="uppercase tracking-[0.08em] text-xs font-medium text-[var(--color-muted)] text-center">chá de casa nova</div>
 
           {/* Casal */}
           <div className="mt-3 flex justify-center">
@@ -177,15 +177,15 @@ export default function Home() {
             </div>
           </div>
 
-          <h1 className="display-title text-center mt-3">Áthina e Kayo</h1>
+          <h1 className="font-serif text-3xl sm:text-4xl font-light text-center mt-3">Áthina e Kayo</h1>
 
           <div className="mt-2 flex flex-col items-center">
-            <div className="subinfo text-center" style={{ marginBottom: 4 }}>
+            <div className="uppercase text-sm tracking-wider text-[var(--color-text)] text-center" style={{ marginBottom: 4 }}>
               SÁBADO, ÀS 15 HRS
             </div>
 
-            <div className="date-block flex flex-wrap items-center justify-center gap-2" aria-label="Data do evento">
-              <span className="date-part">09</span>
+            <div className="font-serif text-lg text-[var(--color-text)] flex flex-wrap items-center justify-center gap-2" aria-label="Data do evento">
+              <span className="font-serif text-lg text-[var(--color-text)]">09</span>
 
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path
@@ -194,7 +194,7 @@ export default function Home() {
                 />
               </svg>
 
-              <span className="date-part">MAIO</span>
+              <span className="font-serif text-lg text-[var(--color-text)]">MAIO</span>
 
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path
@@ -203,10 +203,10 @@ export default function Home() {
                 />
               </svg>
 
-              <span className="date-part">2026</span>
+              <span className="font-serif text-lg text-[var(--color-text)]">2026</span>
             </div>
 
-            <div className="muted text-center mt-2">ENDEREÇO COMPLETO</div>
+            <div className="text-[var(--color-muted)] text-sm text-center mt-2">ENDEREÇO COMPLETO</div>
           </div>
 
           <Divider />
@@ -220,7 +220,7 @@ export default function Home() {
               <Button variant="outline">Ver lista de presentes</Button>
             </Link>
 
-            <a href="#como-chegar" className="muted w-full text-center sm:w-auto sm:text-left self-center">
+            <a href="#como-chegar" className="text-[var(--color-muted)] text-sm w-full text-center sm:w-auto sm:text-left self-center">
               Como chegar
             </a>
           </div>
@@ -228,7 +228,7 @@ export default function Home() {
           <Divider />
 
           <section id="como-chegar" className="scroll-mt-24 mt-auto pb-4 sm:pb-6">
-            <p className="muted text-center">
+            <p className="text-[var(--color-muted)] text-sm text-center">
               Estamos muito felizes em celebrar com você. Chegue alguns minutos antes para acomodação tranquila.
             </p>
           </section>

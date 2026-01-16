@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import Button from './Button'
 
 export type ModalProps = {
   isOpen: boolean
@@ -31,13 +32,24 @@ export default function Modal({ isOpen, title, description, confirmText = 'Sim',
   const descId = description ? 'modal-desc' : undefined
 
   return (
-    <div className="modal-overlay" role="presentation" onClick={onCancel}>
-      <div className="modal-card" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={descId} onClick={(e) => e.stopPropagation()}>
-        <h3 id={titleId} className="section-title" style={{ marginBottom: 8 }}>{title}</h3>
-        {description && <p id={descId} className="muted">{description}</p>}
-        <div className="modal-actions">
-          <button ref={firstButtonRef} className="btn" onClick={onConfirm}>{confirmText}</button>
-          <button className="btn btn-outline" onClick={onCancel}>{cancelText}</button>
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4" 
+      role="presentation" 
+      onClick={onCancel}
+    >
+      <div 
+        className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-lg text-center"
+        role="dialog" 
+        aria-modal="true" 
+        aria-labelledby={titleId} 
+        aria-describedby={descId} 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 id={titleId} className="font-sans font-semibold text-lg mb-2">{title}</h3>
+        {description && <p id={descId} className="text-[var(--color-muted)] text-sm">{description}</p>}
+        <div className="flex gap-2 justify-center mt-5">
+          <Button ref={firstButtonRef} onClick={onConfirm}>{confirmText}</Button>
+          <Button variant="outline" onClick={onCancel}>{cancelText}</Button>
         </div>
       </div>
     </div>

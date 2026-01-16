@@ -311,13 +311,12 @@ export default function ListaPresentes() {
 
   return (
     <Layout>
-      <div className="card">
-        <div className="card-header" style={{ marginBottom: 8 }}>
+      <div className="bg-white rounded-3xl p-4 shadow-[0_4px_30px_var(--shadow-soft)] border border-[var(--color-border)]">
+        <div className="flex items-center justify-between gap-4 flex-wrap" style={{ marginBottom: 8 }}>
           <SectionTitle>Lista de presentes</SectionTitle>
 
-          <button
-            type="button"
-            className="btn btn-outline cursor-pointer"
+          <Button
+            variant="outline"
             onClick={() => navigate('/')}
             aria-label="Voltar para o início"
           >
@@ -325,10 +324,10 @@ export default function ListaPresentes() {
               <path d="M15 18l-6-6 6-6" stroke="#446323" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             Voltar
-          </button>
+          </Button>
         </div>
 
-        <div className="hint">Ao marcar como comprado, o item aparece como reservado.</div>
+        <div className="text-xs text-[var(--color-muted)]">Ao marcar como comprado, o item aparece como reservado.</div>
         <Divider />
 
         {/* Room filter chips */}
@@ -379,22 +378,22 @@ export default function ListaPresentes() {
         )}
 
         {!loading && visibleItems.length === 0 && (
-          <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-            <span className="muted">Nenhum item neste cômodo ainda.</span>
+          <div className="bg-white rounded-3xl p-4 shadow-[0_4px_30px_var(--shadow-soft)] border border-[var(--color-border)]" style={{ padding: 16, textAlign: 'center' }}>
+            <span className="text-[var(--color-muted)] text-sm">Nenhum item neste cômodo ainda.</span>
           </div>
         )}
 
         {!loading && (
-        <div className="cards-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
           {visibleItems.map((p: Gift) => {
             const isPurchased = purchased.includes(p.id)
             const rawImg = getGiftImage(p)
             const imgUrl = safeImageSrc(rawImg)
 
             return (
-              <div key={p.id} className="card" style={{ padding: 16 }}>
+              <div key={p.id} className="bg-white rounded-3xl p-4 shadow-[0_4px_30px_var(--shadow-soft)] border border-[var(--color-border)]" style={{ padding: 16 }}>
                 {/* Image area */}
-                <div className="gift-image">
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-[var(--color-bg)] flex items-center justify-center mb-3">
                   {(!imgUrl || errorIds.has(p.id)) && (
                     <div
                       style={{
@@ -411,7 +410,7 @@ export default function ListaPresentes() {
                         <rect x="3" y="5" width="18" height="14" rx="2" stroke="#CED1CD" strokeWidth="1.5" />
                         <line x1="6" y1="8" x2="18" y2="16" stroke="#CED1CD" strokeWidth="1.5" />
                       </svg>
-                      <span className="muted">Imagem indisponível</span>
+                      <span className="text-[var(--color-muted)] text-sm">Imagem indisponível</span>
                     </div>
                   )}
 
@@ -449,7 +448,7 @@ export default function ListaPresentes() {
                   <strong style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
                     {p.nome}
                   </strong>
-                  {isPurchased && <span className="badge" style={{ flexShrink: 0 }}>Comprado</span>}
+                  {isPurchased && <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-secondary)] text-white" style={{ flexShrink: 0 }}>Comprado</span>}
                 </div>
 
                 {/* AÇÕES (fix do “Cancelar compra” quebrando o card) */}
@@ -488,7 +487,7 @@ export default function ListaPresentes() {
         {/* Bottom sentinel and loader for infinite scroll */}
         {!loading && hasMore && (
           <div ref={loadMoreRef} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-            {loadingMore ? <Spinner message="Carregando mais itens..." ariaLabel="Carregando mais itens" /> : <span className="muted">Role para carregar mais</span>}
+            {loadingMore ? <Spinner message="Carregando mais itens..." ariaLabel="Carregando mais itens" /> : <span className="text-[var(--color-muted)] text-sm">Role para carregar mais</span>}
           </div>
         )}
       </div>

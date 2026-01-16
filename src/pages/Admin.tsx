@@ -249,13 +249,15 @@ export default function Admin() {
       }))
     }
 
+  // ✅ Sidebar rola e nada fica “fixo” (sem mt-auto)
   const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      <div className="p-4">
-        <div className="text-sm uppercase tracking-wider opacity-70">Admin</div>
-        <div className="text-lg font-semibold leading-tight">Chá Casa Nova</div>
+    <div className="flex h-full min-h-0 flex-col overflow-y-auto">
+      {/* Topo (agora não fica “fixo” visualmente, porque a sidebar pode rolar) */}
+      <div className="p-3">
+        <div className="text-xs uppercase tracking-wider opacity-70">Admin</div>
+        <div className="text-base font-semibold leading-tight">Chá Casa Nova</div>
 
-        <div className="mt-3 rounded-xl border border-black/10 bg-white/60 p-3">
+        <div className="mt-2.5 rounded-xl border border-black/10 bg-white/60 p-2.5">
           <div className="text-xs opacity-70">Sessão</div>
           <div className="break-all text-sm font-medium">
             {session?.user?.email ?? 'Sessão ativa'}
@@ -263,10 +265,11 @@ export default function Admin() {
         </div>
       </div>
 
+      {/* Navegação */}
       <div className="px-2 flex flex-col gap-2">
         {navItems.map((item) => {
           const active = tab === item.key
-          const baseClass = 'w-full text-left px-3 py-3 rounded-xl transition border'
+          const baseClass = 'w-full text-left px-3 py-2.5 rounded-xl transition border'
           const activeClass = 'bg-black text-white border-black'
           const inactiveClass = 'bg-white/60 border-black/10 hover:bg-white'
 
@@ -303,7 +306,8 @@ export default function Admin() {
         })}
       </div>
 
-      <div className="mt-auto p-4">
+      {/* Logout (não está mais “fixo” no rodapé) */}
+      <div className="p-3">
         <Divider />
         <div className="mt-3">
           <Button onClick={logout} variant="outline" className="w-full">
@@ -315,8 +319,8 @@ export default function Admin() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black/[0.04] to-transparent">
-      <div className="">
+    <div className="min-h-screen md:h-screen md:overflow-hidden bg-gradient-to-b from-black/[0.04] to-transparent">
+      <div className="p-4 md:p-5 md:h-full md:min-h-0">
         {/* Mobile topbar */}
         <div className="mb-3 flex items-center justify-between gap-2 md:hidden">
           <div>
@@ -328,16 +332,16 @@ export default function Admin() {
           </Button>
         </div>
 
-        {/* Desktop layout (sem usar a classe "grid" do Tailwind) */}
-        <div className="flex flex-col gap-4 md:[display:grid] md:[grid-template-columns:400px_minmax(0,2fr)]">
+        {/* Desktop layout (sidebar menor) */}
+        <div className="flex flex-col gap-4 md:grid md:h-full md:min-h-0 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)]">
           {/* Sidebar (desktop) */}
-          <aside className="hidden overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm backdrop-blur md:block">
+          <aside className="hidden md:block md:h-full md:min-h-0 overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm backdrop-blur">
             <SidebarContent />
           </aside>
 
-          {/* Main */}
-          <main className="overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm backdrop-blur">
-            <div className="p-4 md:p-6">
+          {/* Main (rola só aqui no desktop) */}
+          <main className="overflow-hidden rounded-2xl border border-black/10 bg-white/70 shadow-sm backdrop-blur md:h-full md:min-h-0 md:overflow-y-auto">
+            <div className="p-1 md:p-6">
               <div className="hidden items-start justify-between gap-3 md:flex">
                 <div>
                   <h2 className="text-xl font-semibold">{labels.title}</h2>
@@ -357,7 +361,9 @@ export default function Admin() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h3 className="text-lg font-semibold">Cadastrar presente</h3>
-                        <div className="text-sm opacity-60">Crie itens e mantenha a lista organizada.</div>
+                        <div className="text-sm opacity-60">
+                          Crie itens e mantenha a lista organizada.
+                        </div>
                       </div>
                     </div>
 
@@ -407,13 +413,19 @@ export default function Admin() {
                         label="Tolerância do fundo"
                         type="number"
                         value={String(giftForm.bgTolerance ?? 35)}
-                        onChange={(e) => handleGiftFormChange('bgTolerance')(Number(e.target.value))}
+                        onChange={(e) =>
+                          handleGiftFormChange('bgTolerance')(Number(e.target.value))
+                        }
                       />
 
                       <Select
                         label="Amostra do fundo"
                         value={giftForm.bgSample ?? 'corners'}
-                        onChange={(e) => handleGiftFormChange('bgSample')(e.target.value as GiftFormState['bgSample'])}
+                        onChange={(e) =>
+                          handleGiftFormChange('bgSample')(
+                            e.target.value as GiftFormState['bgSample'],
+                          )
+                        }
                       >
                         <option value="corners">Cantos</option>
                         <option value="border">Borda</option>
@@ -446,7 +458,9 @@ export default function Admin() {
                     <Divider />
 
                     {loadingGifts ? (
-                      <div className="muted">Carregando presentes...</div>
+                      <div className="text-[var(--color-muted)] text-sm">
+                        Carregando presentes...
+                      </div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="w-full" style={{ minWidth: 820 }}>
@@ -472,7 +486,7 @@ export default function Admin() {
                                   <td>
                                     {editing ? (
                                       <input
-                                        className="input"
+                                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl bg-white text-[var(--color-text)] focus:outline-2 focus:outline-[var(--color-secondary)] focus:outline-offset-2"
                                         value={edits?.nome ?? ''}
                                         onChange={handleInputEvent('nome', g.id)}
                                       />
@@ -484,7 +498,7 @@ export default function Admin() {
                                   <td>
                                     {editing ? (
                                       <select
-                                        className="select"
+                                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl bg-white text-[var(--color-text)] focus:outline-2 focus:outline-[var(--color-secondary)] focus:outline-offset-2"
                                         value={edits?.comodo ?? g.comodo}
                                         onChange={handleInputEvent('comodo', g.id)}
                                       >
@@ -502,7 +516,7 @@ export default function Admin() {
                                   <td>
                                     {editing ? (
                                       <input
-                                        className="input"
+                                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl bg-white text-[var(--color-text)] focus:outline-2 focus:outline-[var(--color-secondary)] focus:outline-offset-2"
                                         value={edits?.linkLoja ?? g.linkLoja}
                                         onChange={handleInputEvent('linkLoja', g.id)}
                                       />
@@ -511,14 +525,14 @@ export default function Admin() {
                                         Abrir
                                       </a>
                                     ) : (
-                                      <span className="muted">—</span>
+                                      <span className="text-[var(--color-muted)] text-sm">—</span>
                                     )}
                                   </td>
 
                                   <td>
                                     {editing ? (
                                       <input
-                                        className="input"
+                                        className="w-full px-3 py-2.5 border border-[var(--color-border)] rounded-xl bg-white text-[var(--color-text)] focus:outline-2 focus:outline-[var(--color-secondary)] focus:outline-offset-2"
                                         value={edits?.imageUrl ?? g.imageUrl}
                                         onChange={handleInputEvent('imageUrl', g.id)}
                                       />
@@ -527,7 +541,7 @@ export default function Admin() {
                                         Ver
                                       </a>
                                     ) : (
-                                      <span className="muted">—</span>
+                                      <span className="text-[var(--color-muted)] text-sm">—</span>
                                     )}
                                   </td>
 
@@ -573,7 +587,7 @@ export default function Admin() {
                   <Divider />
 
                   {loadingPurchases ? (
-                    <div className="muted">Carregando reservas...</div>
+                    <div className="text-[var(--color-muted)] text-sm">Carregando reservas...</div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full" style={{ minWidth: 760 }}>
@@ -599,7 +613,10 @@ export default function Admin() {
                                 <td>{nome}</td>
                                 <td>{p.gift_id}</td>
                                 <td>
-                                  <Button variant="outline" onClick={() => cancelPurchase(p.gift_id)}>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => cancelPurchase(p.gift_id)}
+                                  >
                                     Cancelar
                                   </Button>
                                 </td>
@@ -623,7 +640,9 @@ export default function Admin() {
                   <Divider />
 
                   {loadingRsvps ? (
-                    <div className="muted">Carregando confirmações...</div>
+                    <div className="text-[var(--color-muted)] text-sm">
+                      Carregando confirmações...
+                    </div>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full" style={{ minWidth: 720 }}>
@@ -637,12 +656,8 @@ export default function Admin() {
                         </thead>
                         <tbody>
                           {rsvps.map((r) => (
-                            <tr
-                              key={(r as RsvpWithId).id ?? `${r.name}-${r.date}`}
-                            >
-                              <td>
-                                {r.date ? new Date(r.date).toLocaleString('pt-BR') : '—'}
-                              </td>
+                            <tr key={(r as RsvpWithId).id ?? `${r.name}-${r.date}`}>
+                              <td>{r.date ? new Date(r.date).toLocaleString('pt-BR') : '—'}</td>
                               <td>{r.name}</td>
                               <td>{r.phone || '—'}</td>
                               <td>{r.attending ? 'Sim' : 'Não'}</td>
@@ -657,27 +672,27 @@ export default function Admin() {
             </div>
           </main>
         </div>
-      </div>
 
-      {/* Mobile sidebar drawer */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <div className="absolute left-0 top-0 h-full w-[86%] max-w-[340px] overflow-hidden rounded-r-2xl border border-black/10 bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-black/10 p-3">
-              <div className="font-semibold">Menu</div>
-              <Button variant="outline" onClick={() => setSidebarOpen(false)}>
-                Fechar
-              </Button>
+        {/* Mobile sidebar drawer */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setSidebarOpen(false)}
+            />
+            <div className="absolute left-0 top-0 h-full w-[72%] max-w-[280px] overflow-hidden rounded-r-2xl border border-black/10 bg-white shadow-xl">
+              <div className="flex items-center justify-between border-b border-black/10 p-3">
+                <div className="font-semibold">Menu</div>
+                <Button variant="outline" onClick={() => setSidebarOpen(false)}>
+                  Fechar
+                </Button>
+              </div>
+              <SidebarContent />
             </div>
-            <SidebarContent />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
