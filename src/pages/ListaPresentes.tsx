@@ -385,7 +385,7 @@ export default function ListaPresentes() {
         )}
 
         {!loading && (
-        <div className="grid">
+        <div className="cards-grid">
           {visibleItems.map((p: Gift) => {
             const isPurchased = purchased.includes(p.id)
             const rawImg = getGiftImage(p)
